@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Production/Build outputs
+dist/
+.next/
+out/
+build/
+bin/
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+**/.env
+**/.env.local
+
+# Debug and Logs
+*.log
+*.err.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Playwright & Testing
+playwright-report/
+test-results/
+coverage/
+Dockerfile.generated
