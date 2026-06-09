@@ -215,9 +215,13 @@ export class BrowserSession {
           timeout: 15000
         });
         this.browser.on("disconnected", () => {
-          void this.stop().then(() => {
-            this.setStatus("error", "Browser disconnected.");
-          });
+          this.stop()
+            .then(() => {
+              this.setStatus("error", "Browser disconnected.");
+            })
+            .catch(() => {
+              this.setStatus("error", "Browser disconnected.");
+            });
         });
         return;
       } catch (error) {

@@ -95,12 +95,20 @@ io.on("connection", (socket) => {
 });
 
 process.on("SIGINT", async () => {
-  await browserSession.stop();
+  try {
+    await browserSession.stop();
+  } catch {
+    // Ignore shutdown cleanup errors
+  }
   process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
-  await browserSession.stop();
+  try {
+    await browserSession.stop();
+  } catch {
+    // Ignore shutdown cleanup errors
+  }
   process.exit(0);
 });
 

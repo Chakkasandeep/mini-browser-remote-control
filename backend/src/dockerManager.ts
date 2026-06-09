@@ -140,19 +140,23 @@ export class DockerManager {
   }
 
   async stopContainer() {
-    const container = this.container ?? (await this.findContainer());
-    if (!container) return;
-
     try {
-      await container.stop({ t: 2 });
-    } catch {
-      // Already stopped containers can be removed below.
-    }
+      const container = this.container ?? (await this.findContainer());
+      if (!container) return;
 
-    try {
-      await container.remove({ force: true });
+      try {
+        await container.stop({ t: 2 });
+      } catch {
+        // Already stopped containers can be removed below.
+      }
+
+      try {
+        await container.remove({ force: true });
+      } catch {
+        // Container removal is best-effort during shutdown.
+      }
     } catch {
-      // Container removal is best-effort during shutdown.
+      // Ignore errors during shutdown
     }
 
     this.container = null;
