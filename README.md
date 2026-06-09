@@ -3,42 +3,37 @@
 A local-only remote browser control system (similar to a miniature TeamViewer for a web browser) built using **Next.js**, **Express**, **Socket.IO**, **Dockerode**, and **Playwright**.
 
 ---
-
 ## Architecture Diagram
 
 ```mermaid
 flowchart TD
-  subgraph Host [Windows Host Machine]
-    UI["Next.js Frontend\n(localhost:3000)"]
-    API["Express Backend\n(localhost:4000)"]
-    WS["Socket.IO WebSocket Server\n(Port 4000)"]
+
+  subgraph Host
+    UI["Next.js Frontend<br/>localhost:3000"]
+    API["Express Backend<br/>localhost:4000"]
+    WS["Socket.IO Server<br/>Port 4000"]
   end
 
-  subgraph LinuxVM [WSL2 / Docker Desktop Namespace]
-    subgraph Container [Docker Container: mini-browser-chromium]
-      Socat["socat Proxy\n(Binds 0.0.0.0:9222)"]
-      Chrome["Headless Chromium\n(Binds 127.0.0.1:9223)"]
+  subgraph LinuxVM
+    subgraph Container
+      Socat["socat Proxy<br/>0.0.0.0:9222"]
+      Chrome["Headless Chromium<br/>127.0.0.1:9223"]
     end
   end
 
-  %% API Calls
-  UI -->|1. POST /start-browser| API
-  UI -->|6. POST /stop-browser| API
-  API -->|2. Orchestrates Container| Container
+  UI -->|POST start-browser| API
+  UI -->|POST stop-browser| API
 
-  %% WebSockets
-  UI <-->|4. Connects & Syncs Status| WS
-  WS -->|"browser:frame (JPEG stream)"| UI
-  UI -->|"browser:control (clicks, keys, wheel, navigate)"| WS
+  API -->|Orchestrates| Socat
 
-  %% CDP Debugging Connection
-  API -->|3. connectOverCDP| Socat
-  Socat -->|Forward TCP| Chrome
-  API -->|5. Screenshots & Inputs| Chrome
+  UI <-->|WebSocket| WS
+  WS -->|JPEG Stream| UI
+  UI -->|Control Events| WS
+
+  API -->|connectOverCDP| Socat
+  Socat -->|TCP Forward| Chrome
+  API -->|Screenshots and Inputs| Chrome
 ```
-
----
-
 ## How It Works (System Data Flow)
 
 1. **User Action:** The user opens the Next.js UI on `http://localhost:3000` and clicks the **"Start Browser"** button.
