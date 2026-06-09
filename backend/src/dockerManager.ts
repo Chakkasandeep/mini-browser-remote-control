@@ -1,25 +1,16 @@
-import fs from "node:fs";
 import Docker, { Container } from "dockerode";
 import tar from "tar-fs";
 import { config } from "./config.js";
 
 const getDockerOptions = () => {
   if (process.platform === "win32") {
-    const desktopLinuxPipe = "//./pipe/dockerDesktopLinuxEngine";
-    const defaultPipe = "//./pipe/docker_engine";
-    try {
-      if (fs.existsSync(desktopLinuxPipe)) {
-        return { socketPath: desktopLinuxPipe };
-      }
-    } catch {
-      // Ignore error and fall back
-    }
-    return { socketPath: defaultPipe };
+    // Default to the standard Docker Desktop WSL2 pipe
+    return { socketPath: "//./pipe/dockerDesktopLinuxEngine" };
   }
   return {};
 };
 
-const docker = new Docker(getDockerOptions());
+let docker = new Docker(getDockerOptions());
 const imageVersionLabel = "mini-browser.image-version";
 const requiredImageVersion = "2026-06-08.3";
 
@@ -60,11 +51,30 @@ export class DockerManager {
     try {
       await docker.ping();
       onProgress?.("Docker Desktop is running.");
+      return;
     } catch (error) {
-      throw new Error(
-        "Docker is not reachable. Start Docker Desktop and retry."
-      );
+      if (process.platform === "win32") {
+        const currentPath = (docker.modem as any).socketPath;
+        const altPath =
+          currentPath === "//./pipe/dockerDesktopLinuxEngine"
+            ? "//./pipe/docker_engine"
+            : "//./pipe/dockerDesktopLinuxEngine";
+
+        try {
+          const altDocker = new Docker({ socketPath: altPath });
+          await altDocker.ping();
+          docker = altDocker;
+          onProgress?.("Docker Desktop is running.");
+          return;
+        } catch {
+          // Fall through
+        }
+      }
     }
+
+    throw new Error(
+      "Docker is not reachable. Start Docker Desktop and retry."
+    );
   }
 
   async ensureImage(onProgress?: ProgressReporter) {
