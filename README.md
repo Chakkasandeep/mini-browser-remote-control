@@ -28,8 +28,8 @@ flowchart TD
 
   %% WebSockets
   UI <-->|4. Connects & Syncs Status| WS
-  WS -->|browser:frame (JPEG stream)| UI
-  UI -->|browser:control (clicks, keys, wheel, navigate)| WS
+  WS -->|"browser:frame (JPEG stream)"| UI
+  UI -->|"browser:control (clicks, keys, wheel, navigate)"| WS
 
   %% CDP Debugging Connection
   API -->|3. connectOverCDP| Socat
