@@ -1,8 +1,25 @@
+import fs from "node:fs";
 import Docker, { Container } from "dockerode";
 import tar from "tar-fs";
 import { config } from "./config.js";
 
-const docker = new Docker();
+const getDockerOptions = () => {
+  if (process.platform === "win32") {
+    const desktopLinuxPipe = "//./pipe/dockerDesktopLinuxEngine";
+    const defaultPipe = "//./pipe/docker_engine";
+    try {
+      if (fs.existsSync(desktopLinuxPipe)) {
+        return { socketPath: desktopLinuxPipe };
+      }
+    } catch {
+      // Ignore error and fall back
+    }
+    return { socketPath: defaultPipe };
+  }
+  return {};
+};
+
+const docker = new Docker(getDockerOptions());
 const imageVersionLabel = "mini-browser.image-version";
 const requiredImageVersion = "2026-06-08.3";
 
